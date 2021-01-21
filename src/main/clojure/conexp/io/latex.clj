@@ -38,7 +38,12 @@
 
 (defprotocol LaTeX
   "Implements conversion to latex code."
-  (latex [this] [this choice] "Returns a string representation of this."))
+  (latex
+    [this]
+    [this choice]
+    [this choice cxtname]
+    [this choice cxtname attributeorder]
+    [this choice cxtname attributeorder nocircles] "Returns a string representation of this."))
 
 ;;; Default
 
@@ -48,6 +53,12 @@
    ([this]
       (.toString this))
    ([this choice]
+    (.toString this))
+   ([this choice cxtname]
+    (.toString this))
+   ([this choice cxtname attributeorder]
+      (.toString this))
+   ([this choice cxtname attributeorder nocirlces]
       (.toString this))))
 
 ;;; Contexts
@@ -56,8 +67,14 @@
   LaTeX
   (latex
    ([this]
-      (latex this :plain))
+    (latex this :plain))
    ([this choice]
+    (latex this choice " "))
+   ([this choice cxtname]
+    (latex this choice cxtname nil))
+   ([this choice cxtname attributeorder]
+    (latex this choice cxtname attributeorder true))
+   ([this choice cxtname attributeorder nocircles]
       (case choice
         :plain (with-out-str
                  (println "$")
@@ -74,15 +91,20 @@
                  (println "$"))
         :fca   (with-out-str
                  (println "\\begin{cxt}%")
-                 (println "  \\cxtName{}%")
-                 (doseq [m (attributes this)]
+                 (println (str "  \\cxtName{" cxtname "}%"))
+                 (if nocircles (println "  \\cxtNichtKreuz{}%"))
+                 (doseq [m  (if (not (nil? attributeorder))
+                              attributeorder
+                              (attributes this))]
                    (if (>= 2 (count m))
                      (println (str "  \\att{" (tex-escape m) "}%"))
                      (println (str "  \\atr{" (tex-escape m) "}%"))))
                  (let [inz (incidence this)]
-                   (doseq [g (objects this)]
+                   (doseq [g (sort-by (juxt count first second) (objects this))]
                      (print "  \\obj{") 
-                     (doseq [m (attributes this)]
+                     (doseq [m  (if (not (nil? attributeorder))
+                                  attributeorder
+                                  (attributes this))]
                        (print (if (inz [g m]) "x" ".")))
                      (println (str "}{" (tex-escape g) "}"))))
                  (println "\\end{cxt}"))

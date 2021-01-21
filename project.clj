@@ -20,6 +20,7 @@
                  [org.clojure/math.combinatorics  "0.1.6"]
                  [org.clojure/math.numeric-tower  "0.0.4"]
                  [org.clojure/tools.cli           "1.0.194"]
+                 [org.clojure/algo.generic "0.1.3"]
                  [org.apache.commons/commons-math "2.2"]
                  [seesaw                          "1.5.0"]
                  [reply                           "0.4.3"
