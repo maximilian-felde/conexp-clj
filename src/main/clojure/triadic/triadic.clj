@@ -750,12 +750,14 @@
         [L E]
         (let [S (triadic-context+conditions->subposition-context E D)
               AJJ (cxt/context-attribute-closure S A)
-              question (impl/make-implication A AJJ)]
+              question (impl/make-implication A AJJ)
+              _ (println question AJJ)]
           (if (= A AJJ)
             (recur (next-closure-by-implications A M (conj L question))
                    L
                    E)
-            (let [answer (triadic-expert D question)]
+            (let [answer (triadic-expert D question)
+                  _ (println question answer)]
               (if (true? answer)              ;no counterexample
                 (recur (next-closure-by-implications A M (conj L question))
                        (conj L question)
@@ -799,7 +801,7 @@
                    E
                    C)
             (let [answer (triadic-expert D question)
-                  _ (println D "\t" (if (true? answer) true (first answer)) "\t" question)
+                  ;_ (println (set->latex D)  "&\t" (implication->latex question)"&\t" (if (true? answer) true (name (first answer))) "\\\\")
                   Cnew (if (true? answer)
                          (add-row-to-context C [question (for [d D] [question d])])
                          C)]
@@ -860,6 +862,10 @@
 ;;; ;;;
 ;;; LATEX OUTPUT FUNCTIONS 
 ;;; ;;;
+(defn set->latex [S]
+  (if (empty? S)
+    "$\\emptyset $ "
+    (str "\\{" (clojure.string/join ", "  (map name S)) "\\}")))
 
 (defn cxt-family->latex [cxt-fam file]
   (spit file
@@ -885,14 +891,37 @@
         conclusion (impl/conclusion impl)]
     (str (mapv name premise) "->" (mapv name conclusion))))
 
+(defn implication->latex
+  [impl]
+  (let [premise (impl/premise impl)
+        pstr (if (empty? premise)
+               "$\\emptyset $"
+               (clojure.string/join ", " (mapv name premise)))
+        conclusion (impl/conclusion impl)
+        cstr (if (empty? conclusion)
+               "$\\emptyset $"
+              (clojure.string/join ", " (mapv name conclusion)))]
+    (str pstr "$\\ \\implies \\ $" cstr)))
+
+(defn implication->latex-context-print
+  [impl]
+  (let [premise (impl/premise impl)
+        pstr (if (empty? premise)
+               "$\\emptyset $"
+               (clojure.string/join ", " (mapv name premise)))
+        conclusion (impl/conclusion impl)
+        cstr (if (empty? conclusion)
+               "$\\emptyset $"
+              (clojure.string/join ", " (mapv name conclusion)))]
+    (str pstr " $\\implies  $ " cstr)))
 
 (defn implcxt->latex
   [cxt file attributeorder]
   (spit file
         (str (conexp.io.latex/latex ((fn [cxt] (cxt/make-context
-                                                (map implication->latexfriendly (cxt/objects cxt))
+                                                (map implication->latex-context-print (cxt/objects cxt))
                                                 (map name (cxt/attributes cxt))
-                                                (map #(vector (implication->latexfriendly (first %)) (name (second %))) (cxt/incidence cxt)))) cxt)
+                                                (map #(vector (implication->latex-context-print (first %)) (name (second %))) (cxt/incidence cxt)))) cxt)
                                     :fca
                                     " "
                                     (map name attributeorder)))))
@@ -1007,17 +1036,27 @@
        (context-family->triadic-context)
        ((fn [tcxt] (explore-all-conditional-theories (triadic-expert-from-triadic-context tcxt)
                                                      (empty-triadic-context-from-triadic-context tcxt)
-                                                     (empty-implications-context-from-triadic-context tcxt))))))
+                                                     (empty-implications-context-from-triadic-context tcxt))))
+       ((fn [[C E]] [C (triadic-context->context-family E)]))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;; explore the counterexample to the suggestion by ganter and obiedkov
 (def cxt-family6 {:A (cxt/make-context [1] [:a :b ] [[1 :a]])
                   :B (cxt/make-context [1] [:a :b ] [])})
-(defn- x []
+(defn- explore-triadic-family []
   (let [tcxt (context-family->triadic-context cxt-family6)
         expert (triadic-expert-from-triadic-context tcxt)
         E0 (empty-triadic-context-from-triadic-context tcxt)
-        L0 (empty-implications-context-from-triadic-context tcxt)
+        L0 #{}
         bottom-node (explore-conditions expert [:A :B] E0 L0)]
     bottom-node))
+
+
+(defn- print-all-next-extents [cxt]
+  (loop [ext #{}]
+    (do
+      (println ext "\n" (cxt/object-derivation cxt ext) "\n")
+      (if (= ext (cxt/objects cxt))
+        nil
+        (recur (next-extent cxt ext))))))
