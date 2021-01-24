@@ -795,7 +795,7 @@
               question (impl/make-implication A AJJ)]
           (if (= A AJJ)
             (recur (next-closure-by-implications A M (conj L question))
-                   qL
+                   L
                    E
                    C)
             (let [answer (triadic-expert D question)
@@ -842,19 +842,19 @@
 ;;; ;;;
 
 
-(def triadic-context (context-family->triadic-context cxt-family))
-(def triadic-expert (triadic-expert-from-triadic-context triadic-context))
+(def triadic-context0 (context-family->triadic-context cxt-family))
+(def triadic-expert0 (triadic-expert-from-triadic-context triadic-context0))
 (defn empty-triadic-context-from-triadic-context [tcxt] {:objects #{}
                                                          :attributes (:attributes tcxt)
                                                          :conditions (:conditions tcxt)
                                                          :incidence #{}})
-(def triadic-context-no-objects {:objects #{}
-                                 :attributes (:attributes triadic-context)
-                                 :conditions (:conditions triadic-context)
+(def triadic-context-no-objects0 {:objects #{}
+                                 :attributes (:attributes triadic-context0)
+                                 :conditions (:conditions triadic-context0)
                                  :incidence #{}})
 
 (defn empty-implications-context-from-triadic-context [tcxt] (cxt/make-context #{} (:conditions tcxt) #{}))
-(def implications-context (empty-implications-context triadic-context))
+(def implications-context0 (empty-implications-context-from-triadic-context triadic-context0))
 
 
 ;;; ;;;
