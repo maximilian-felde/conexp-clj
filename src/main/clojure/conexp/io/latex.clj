@@ -23,7 +23,7 @@
     string 
     {\& "\\&"
      \% "\\%"
-     \$ "\\$"
+     \$ "$"
      \# "\\#"
      \_ "\\_"
      \{ "\\{"
@@ -32,7 +32,7 @@
      \> "\\textgreater "
      \~ "\\textasciitilde "
      \^ "\\textasciicircum "
-     \\ "\\textbackslash "}))
+     \\ "\\"}))
 
 ;;;
 
